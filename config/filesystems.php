@@ -32,7 +32,7 @@ return [
 
         'local' => [
             'driver' => 'local',
-            'root' => 'C:\fyp\uploadedFile_untest',
+            'root' => storage_path('app'),
             'throw' => false,
         ],
 
