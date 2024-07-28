@@ -16,15 +16,17 @@
 
         .sidebar {
             width: 250px;
-            background-color: #f0f4ff;
+            background-color: #F1F2F7;
             height: 100vh;
             position: fixed;
+            font-size:medium;
             padding-top: 20px;
         }
 
         .sidebar h2 {
             text-align: center;
-            color: #3b82f6;
+            padding: 20px;
+            color: #5A67BA;
         }
 
         .sidebar ul {
@@ -116,13 +118,16 @@
     <div class="sidebar">
         <h2>Re-entrancy Scanner</h2>
         <ul>
-            <li><a href="#">Dashboard</a></li>
-            <li><a href="#">Report</a></li>
+            <li><a href="{{ route('dashboard.form') }}">Dashboard</a></li>
+            <li><a href="{{ route('report') }}">Report</a></li>
         </ul>
     </div>
     <div class="main-content">
         <div class="navbar">
-            <div></div>
+            <div class="search-bar">
+                <input type="text" placeholder="Search">
+                <button><i class="fas fa-search"></i></button>
+            </div>
             <div class="bell">
                 <i class="fas fa-bell"></i>
             </div>

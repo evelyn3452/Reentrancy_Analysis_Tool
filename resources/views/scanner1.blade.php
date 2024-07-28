@@ -3,12 +3,15 @@
 @section('content')
 <div class="upload-container">
     <h3>Upload</h3>
-    <form action="{{ route('dashboard.form') }}" method="POST" enctype="multipart/form-data">
+    <form action="/" method="POST" enctype="multipart/form-data">
         @csrf
         <p>Drag & drop files or <a href="#" id="browse-link">Browse</a></p>
         <p>Supported formats: .sol & Supported version: ^0.8.x</p>
         <input type="file" name="file" id="file" accept=".sol" style="display: none;">
         <div id="fileInfo" style="margin: 20px 0;"></div>
+        <div class="progress-bar">
+            <div class="progress"></div>
+        </div>
         <button type="submit" id="uploadButton" style="display: none;">SUBMIT</button>
     </form>
 </div>

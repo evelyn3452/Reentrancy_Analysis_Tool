@@ -1,7 +1,10 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\UploadController;
+use App\Http\Controllers\ScannerController;
+use App\Http\Controllers\TestingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -14,11 +17,15 @@ use App\Http\Controllers\UploadController;
 |
 */
 
-Route::get('/dashboard', function(){
-    return view('scanner1');
-})->name('dashboard.form');
-Route::post('/dashboard', [UploadController::class, 'upload'])->name('upload');
-Route::get('/report', [UploadController::class, 'display'])->name('uploads.report');
+Route::get('/', function(){
+    return view('upload');
+});
+// Route::post('/', [ScannerController::class, 'upload'])->name('upload');
+// Route::get('/report', [ReportController::class, 'index'])->name('report');
+
+Route::post('/upload', [TestingController::class, 'upload'])->name('upload'); 
+Route::get('/report', [TestingController::class, 'report'])->name('report');
+
 // Auth::routes();
 
 // Route::get('/', [UploadController::class, 'dashboard'])->name('uploads.Dashboard');
