@@ -17,29 +17,25 @@ class UploadController extends Controller
             $file = $request->file('file');
             Log::info('Uploaded file MIME type: ' . $file->getMimeType());
             Log::info('Uploaded file MIME type (Client): ' . $file->getClientMimeType());
+            Log::info('Uploaded file EXTENSION type (Client): ' . $file->getClientOriginalExtension());
         }
 
         // Validate the incoming file. Refuses anything bigger than 2048 kilobyes (=2MB)
-        $request->validate([
-            'file' => 'required|mimes:application/octet-stream|max:2048',
+        $request->validate([ 
+            //'file' => 'required|mimetypes:application/octet-stream|max:2048',
         ]);
 
         if ($request->file('file')->isValid()) {
             $file = $request->file('file');
-            $path = $file->store('uploads','local');
+            $path = "untested_file";
 
             // Push a success notification
-            Session::flash('success', 'File uploaded successfully to ' .$path);
+            if ($file->move($path, $file->getClientOriginalName())) {
+                Session::flash('success', 'File uploaded successfully!');
 
-            return redirect()->back();
+                return redirect()->back();
+            }
         }
         return redirect()->back()->withErrors(['file' => 'There was an issue with the file upload.']);
-    }
-
-    public function display()
-    {
-
-        // $uploadedFiles = UploadedFile::all();
-        return view('report');
     }
 }
