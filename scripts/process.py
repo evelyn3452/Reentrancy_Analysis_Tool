@@ -25,7 +25,7 @@ def analyze_solidity(file_contents):
     # Write the file contents to a temporary file
     tmp_file_path = 'tmp_file.sol'
     with open(tmp_file_path, 'w') as tmp_file:
-        tmp_file.write(file_contents)
+        tmp_file.write(file_contents) 
 
     # Extract Solidity version from the file contents
     version = get_solidity_version(file_contents)
