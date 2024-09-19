@@ -1,71 +1,119 @@
 @extends('components.layout')
 
 @section('content')
+<h2>Dashboard</h2>
 <div class="upload-container">
     <h3>Upload</h3>
-    <form action="/" method="POST" enctype="multipart/form-data">
+    <div class="drop-zone" id="drop-zone">
+        <img src="pics/upload.png"><br />
+        <span class="cloud-icon"></span>
+        Drag & Drop .sol file here or <a href="#" id="file-browse">Browse</a>
+    </div>
+    <form action="{{ route('upload.contract') }}" method="POST" enctype="multipart/form-data">
         @csrf
-        <p>Drag & drop files or <a href="#" id="browse-link">Browse</a></p>
-        <p>Supported formats: .sol & Supported version: ^0.8.x</p>
-        <input type="file" name="file" id="file" accept=".sol" style="display: none;">
-        <div id="fileInfo" style="margin: 20px 0;"></div>
-        <div class="progress-bar">
-            <div class="progress"></div>
-        </div>
-        <button type="submit" id="uploadButton" style="display: none;">SUBMIT</button>
+        <div id="file-list"></div>
+        <input type="file" id="file-input"  name="contract" multiple style="display: none">
+        <button id="upload-btn">UPLOAD</button>
     </form>
+    <div class="progress-bar">
+        <div class="progress-bar-inner"></div>
+    </div>
+    @if(session('error'))
+        <div class="alert alert-danger">
+            {{ session('error') }}
+        </div>
+        <script>
+            // Show the alert or modal when there is an error
+            window.onload = function() {
+                let errorMessage = '{{ session('error') }}';
+                alert(errorMessage); // This will show a simple alert
+
+                // Alternatively, you can trigger a Bootstrap modal
+                // $('#errorModal').modal('show');
+            };
+        </script>
+    @endif
 </div>
 
+
 <script>
-    document.getElementById('browse-link').onclick = function() {
-        document.getElementById('file').click();
-    };
+    document.getElementById('file-browse').addEventListener('click', () => {
+    document.getElementById('file-input').click();
+});
 
-    document.getElementById('file').onchange = function() {
-        displayFileName(this.files[0]);
-    };
+document.getElementById('file-input').addEventListener('change', handleFiles);
+document.getElementById('drop-zone').addEventListener('drop', handleDrop);
+document.getElementById('drop-zone').addEventListener('dragover', (e) => e.preventDefault());
+// document.getElementById('upload-btn').addEventListener('click', uploadFiles);
 
-    // Prevent default drag behaviors
-    window.addEventListener("dragover", function(e) {
-        e.preventDefault();
-    }, false);
+form.addEventListener('submit', (e) => {
+    e.preventDefault(); // Prevent the form from submitting the default way
+    uploadFiles(); // Custom upload handling
+});
 
-    window.addEventListener("drop", function(e) {
-        e.preventDefault();
-    }, false);
+function handleFiles(event) {
+    const files = event.target.files;
+    displayFiles(files);
+    document.getElementById('upload-btn').disabled = false; // Enable the button when files are selected
+}
 
-    // Highlight the drop area when dragging a file over it
-    let dropArea = document.querySelector('.upload-container');
+function handleDrop(event) {
+    event.preventDefault();
+    const files = event.dataTransfer.files;
+    displayFiles(files);
+    document.getElementById('upload-btn').disabled = false; // Enable the button when files are dropped
+}
 
-    ['dragenter', 'dragover'].forEach(eventName => {
-        dropArea.addEventListener(eventName, (e) => {
-            e.preventDefault();
-            dropArea.classList.add('highlight');
-        }, false);
+function displayFiles(files) {
+    const fileList = document.getElementById('file-list');
+    fileList.innerHTML = '';
+    Array.from(files).forEach(file => {
+        const fileItem = document.createElement('div');
+        fileItem.className = 'file-item';
+        fileItem.innerHTML = `<span>${file.name}</span>`;
+        fileList.appendChild(fileItem);
     });
+    // Enable the upload button only when a file is selected or dropped
+    uploadButton.disabled = files.length === 0;
+}
 
-    ['dragleave', 'drop'].forEach(eventName => {
-        dropArea.addEventListener(eventName, (e) => {
-            dropArea.classList.remove('highlight');
-        }, false);
-    });
+function uploadFiles() {
+    const formData = new FormData(form);
+        const xhr = new XMLHttpRequest();
 
-    // Handle dropped files
-    dropArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        let files = e.dataTransfer.files;
-        document.getElementById('file').files = files;
-        displayFileName(files[0]);
-    });
+        xhr.upload.addEventListener('progress', (event) => {
+            if (event.lengthComputable) {
+                const percentComplete = (event.loaded / event.total) * 100;
+                progressBar.style.width = percentComplete + '%';
+            }
+        });
 
-    function displayFileName(file) {
-        if (file) {
-            document.getElementById('fileInfo').innerText = 'Selected file: ' + file.name;
-            document.getElementById('uploadButton').style.display = 'block';
-        } else {
-            document.getElementById('fileInfo').innerText = '';
-            document.getElementById('uploadButton').style.display = 'none';
-        }
-    }
-</script>
-@endsection
+        xhr.addEventListener('load', () => {
+            if (xhr.status === 200) {
+                progressBar.classList.add('complete');
+                window.location.href = "{{ route('results') }}"; // Redirect to the results page on success
+            } else {
+                alert('Upload failed. Please try again.');
+            }
+        });
+
+        xhr.open('POST', form.action, true);
+        xhr.setRequestHeader('X-CSRF-TOKEN', '{{ csrf_token() }}'); // Add CSRF token
+        xhr.send(formData);
+    // const progressBars = document.querySelectorAll('.progress-bar-inner');
+    // progressBars.forEach(bar => {
+    //     bar.style.width = '100%';
+    //     bar.classList.add('complete');
+    // });
+
+    // // Simulate upload completion
+    // setTimeout(() => {
+    //     document.getElementById('upload-btn').disabled = true; // Disable the button after upload is complete
+    // }, 1000); // Adjust the timeout as needed
+}
+// Initially disable the upload button
+// uploadButton.disabled = true;
+document.getElementById('upload-btn').disabled = true;
+
+    </script>
+    @endsection

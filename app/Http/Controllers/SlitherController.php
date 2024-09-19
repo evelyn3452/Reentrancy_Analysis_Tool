@@ -23,19 +23,35 @@ class SlitherController extends Controller
         //     'contract' => 'required|file|mimes:sol',
         //     'solc_version' => 'required|string',
         // ]);
-
+        $request->session()->forget('slither_result');
+        
         $file = $request->file('contract');
+        $fileName = $file->getClientOriginalName();
+        Log::info('Uploaded File Name: ' . $fileName); 
+        $extension = $file->getClientOriginalExtension();
+
+        if ($extension != 'sol') {
+            return back()->with('error', 'Only .sol files are supported');
+        }
+
         $fileContents = file_get_contents($file->getRealPath());
 
         // Run the Python script to analyze the contract
         $result = $this->runSlitherAnalysis($fileContents);
 
-        if ($result === null) {
-            return redirect()->route('upload.form')->with('error', 'Failed to analyze the contract (SlitherController).');
+        // if ($result === null) {
+        //     return redirect()->route('upload.form')->with('error', 'Failed to analyze the contract (SlitherController).');
+        // }
+
+        if ($result === null || isset($result['error'])) {
+            $errorMessage = $result['error'] ?? 'Failed to analyze the contract.';
+            $errorDetails = $result['details'] ?? '';
+            return redirect()->route('upload.form')->with('error', $errorMessage)->with('details', $errorDetails);
         }
+        
 
         // Store the result in the session
-        session(['slither_result' => $result]);
+        session(['slither_result' => $result,'uploaded_file_name' => $fileName]);
 
         return redirect()->route('results');
     }
@@ -73,7 +89,8 @@ class SlitherController extends Controller
                     $filteredResults[] = [
                         'contract_name' => $detector['contract_name'],
                         'function_name' => $detector['function_name'],
-                        'first_markdown_element' => $detector['first_markdown_element'],
+                        'start_line' => $detector['start_line'],
+                        'end_line' => $detector['end_line'],
                         'impact' => $detector['impact'],
                         'code_block' => $detector['code_block']
                     ];
@@ -86,7 +103,8 @@ class SlitherController extends Controller
     public function showResults()
     {
         $result = session('slither_result', []);
+        $fileName = session('uploaded_file_name', '');
 
-        return view('test.results', compact('result'));
+        return view('results', compact('result','fileName'));
     }
 }

@@ -15,7 +15,7 @@ class TestingController extends Controller
         // $request->validate([
         //     'file' => 'required|file|mimes:sol',
         // ]);
-
+ 
         Log::info('getting into the TRY');
         try {
             // Store the uploaded file
@@ -26,7 +26,7 @@ class TestingController extends Controller
  
             // Call Python script to analyze the file
             $python = env('PYTHON_PATH', 'python');//'venv/Scripts/python'
-            $script = base_path('scripts/process.py');
+            $script = base_path('scripts\process.py'); 
             Log::info('Running Python script', ['python' => $python, 'script' => $script]);
 
             $process = new Process([$python, $script]);

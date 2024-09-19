@@ -42,15 +42,16 @@ def get_code_block(file_contents, first_markdown_element):
         # Split file contents into lines and extract the relevant block
         lines = file_contents.split('\n')
         code_block = '\n'.join(lines[start_line-1:end_line])
-        return code_block
-    return None
+        return start_line, end_line, code_block
+    return None, None, None
 
 def extract_contract_and_function(description):
     contract_function_pattern = re.compile(r'Reentrancy in (\w+)\.(\w+)\([^\)]+\)')
-    match = contract_function_pattern.search(description)
-    if match:
-        return match.group(1), match.group(2)
-    return None, None
+    return contract_function_pattern.findall(description)
+    # match = contract_function_pattern.search(description)
+    # if match:
+    #     return match.group(1), match.group(2)
+    # return None, None
 
 def filter_reentrancy_issues(slither_output,file_contents):
     # print(f"bfo filter the slither result, to check is the result passed successfully.: {slither_output}")
@@ -62,22 +63,24 @@ def filter_reentrancy_issues(slither_output,file_contents):
     detectors = slither_output["results"]["detectors"]
     
     for detector in detectors:
-        if 'check' in detector and detector['check'] == "reentrancy-eth":
+        if 'check' in detector and detector['check'].startswith("reentrancy"):
             description=detector['description']
             first_markdown_element=detector['first_markdown_element']
             impact=detector['impact']
             
-            contract_name, function_name = extract_contract_and_function(description)
+            contract_functions = extract_contract_and_function(description)
             
-            code_block = get_code_block(file_contents, first_markdown_element)
+            start_line, end_line, code_block = get_code_block(file_contents, first_markdown_element)
             
-            reentrancy_issues.append({
-                "contract_name": contract_name,
-                "function_name": function_name,
-                "first_markdown_element": first_markdown_element,
-                "impact": impact,
-                "code_block": code_block
-            })
+            for contract_name, function_name in contract_functions:
+                reentrancy_issues.append({
+                    "contract_name": contract_name,
+                    "function_name": function_name,
+                    "start_line": start_line,
+                    "end_line": end_line,
+                    "impact": impact,
+                    "code_block": code_block
+                })
 
     return reentrancy_issues
 
@@ -110,8 +113,6 @@ if __name__ == "__main__":
     slither_output = run_slither(tmp_file_path)
     reentrancy_issues = filter_reentrancy_issues(slither_output,file_contents)
     
-    # print(f"slither output : {slither_output}")
-
     # if slither_output:
     if reentrancy_issues:
         print(json.dumps({"reentrancy_issues": reentrancy_issues}, indent=2))
